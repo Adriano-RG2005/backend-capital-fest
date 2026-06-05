@@ -5,9 +5,431 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
+}
+
+//
+// ENUMS
+//
+
+enum AccountStatus {
+  pending_verification
+  active
+  blocked
+}
+
+enum KycStatus {
+  pending
+  approved
+  rejected
+}
+
+enum AccountType {
+  savings
+  checking
+}
+
+enum TransactionStatus {
+  initiated
+  card_charged
+  transfer_pending
+  completed
+  rejected
+}
+
+//
+// CATALOGS
+//
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(50)
+  description String?  @db.VarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users User[]
+
+  @@map("roles")
+}
+
+model DocumentType {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(50)
+  code String? @unique @db.VarChar(20)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users User[]
+
+  @@map("document_types")
+}
+
+model Bank {
+  id       Int     @id @default(autoincrement())
+  name     String  @db.VarChar(100)
+  code     String? @unique @db.VarChar(20)
+
+  isActive Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  bankAccounts BankAccount[]
+  cards        Card[]
+
+  @@map("banks")
+}
+
+//
+// UBIGEO
+//
+
+model Department {
+  id   Int    @id
+  name String @db.VarChar(100)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  provinces Province[]
+  users      User[]
+
+  @@map("departments")
+}
+
+model Province {
+  id Int @id
+
+  departmentId Int @map("department_id")
+
+  name String @db.VarChar(100)
+
+  department Department @relation(fields: [departmentId], references: [id])
+
+  districts District[]
+  users      User[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("provinces")
+}
+
+model District {
+  id Int @id
+
+  provinceId Int @map("province_id")
+
+  name String @db.VarChar(100)
+
+  province Province @relation(fields: [provinceId], references: [id])
+
+  users User[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("districts")
+}
+
+//
+// USERS
+//
+
+model User {
+  id String @id @default(uuid()) @db.Char(36)
+
+  roleId Int @map("role_id")
+
+  firstName String @map("first_name") @db.VarChar(100)
+  lastName  String @map("last_name") @db.VarChar(100)
+
+  birthDate DateTime @map("birth_date") @db.Date
+
+  phone String @db.VarChar(20)
+
+  email String @unique @db.VarChar(255)
+
+  passwordHash String @map("password_hash") @db.VarChar(255)
+
+  documentTypeId Int @map("document_type_id")
+
+  documentNumber String @unique @map("document_number") @db.VarChar(30)
+
+  departmentId Int? @map("department_id")
+  provinceId   Int? @map("province_id")
+  districtId   Int? @map("district_id")
+
+  address String? @db.VarChar(255)
+
+  accountStatus AccountStatus @default(pending_verification) @map("account_status")
+
+  emailVerified Boolean @default(false) @map("email_verified")
+
+  kycStatus KycStatus @default(pending) @map("kyc_status")
+
+  lastLoginAt DateTime? @map("last_login_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  role         Role         @relation(fields: [roleId], references: [id])
+  documentType DocumentType @relation(fields: [documentTypeId], references: [id])
+
+  department Department? @relation(fields: [departmentId], references: [id])
+  province   Province?   @relation(fields: [provinceId], references: [id])
+  district   District?   @relation(fields: [districtId], references: [id])
+
+  verifications UserVerification[] @relation("UserVerifications")
+  reviewedVerifications UserVerification[] @relation("ReviewerVerifications")
+
+  bankAccounts BankAccount[]
+  cards        Card[]
+  simulations  Simulation[]
+  transactions Transaction[]
+  auditLogs    AuditLog[]
+
+  @@index([email])
+  @@index([documentNumber])
+
+  @@map("users")
+}
+
+//
+// KYC
+//
+
+model UserVerification {
+  id String @id @default(uuid()) @db.Char(36)
+
+  userId String @map("user_id")
+
+  documentFrontUrl      String? @map("document_front_url") @db.VarChar(500)
+  documentBackUrl       String? @map("document_back_url") @db.VarChar(500)
+  selfieWithDocumentUrl String? @map("selfie_with_document_url") @db.VarChar(500)
+
+  verificationStatus KycStatus @default(pending) @map("verification_status")
+
+  isCurrent Boolean @default(true) @map("is_current")
+
+  reviewedBy String? @map("reviewed_by")
+
+  reviewedAt DateTime? @map("reviewed_at")
+
+  rejectionReason String? @map("rejection_reason") @db.VarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation("UserVerifications", fields: [userId], references: [id])
+
+  reviewer User? @relation("ReviewerVerifications", fields: [reviewedBy], references: [id])
+
+  @@index([userId])
+
+  @@map("user_verifications")
+}
+
+//
+// BANK ACCOUNTS
+//
+
+model BankAccount {
+  id String @id @default(uuid()) @db.Char(36)
+
+  userId String @map("user_id")
+  bankId Int @map("bank_id")
+
+  accountHolderName String @map("account_holder_name") @db.VarChar(150)
+
+  accountNumber String @map("account_number") @db.VarChar(50)
+
+  cci String? @db.VarChar(30)
+
+  accountType AccountType @map("account_type")
+
+  currencyCode String @default("PEN") @map("currency_code") @db.VarChar(10)
+
+  isDefault Boolean @default(false) @map("is_default")
+  isVerified Boolean @default(false) @map("is_verified")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  user User @relation(fields: [userId], references: [id])
+  bank Bank @relation(fields: [bankId], references: [id])
+
+  cards Card[]
+
+  destinationTransactions Transaction[]
+
+  @@index([userId])
+
+  @@map("bank_accounts")
+}
+
+//
+// CARDS
+//
+
+model Card {
+  id String @id @default(uuid()) @db.Char(36)
+
+  userId String @map("user_id")
+
+  bankAccountId String? @map("bank_account_id")
+
+  bankId Int @map("bank_id")
+
+  cardHolderName String? @map("card_holder_name") @db.VarChar(150)
+
+  cardBrand String? @map("card_brand") @db.VarChar(30)
+
+  lastFourDigits String @map("last_four_digits") @db.Char(4)
+
+  cardFrontImageUrl String? @map("card_front_image_url") @db.VarChar(500)
+
+  isVerified Boolean @default(false) @map("is_verified")
+
+  isDefault Boolean @default(false) @map("is_default")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  bank Bank @relation(fields: [bankId], references: [id])
+
+  bankAccount BankAccount? @relation(fields: [bankAccountId], references: [id])
+
+  sourceTransactions Transaction[]
+
+  @@index([userId])
+
+  @@map("cards")
+}
+
+//
+// SIMULATIONS
+//
+
+model Simulation {
+  id String @id @default(uuid()) @db.Char(36)
+
+  userId String? @map("user_id")
+
+  grossAmount Decimal @map("gross_amount") @db.Decimal(12, 2)
+
+  feePercentage Decimal @map("fee_percentage") @db.Decimal(5, 2)
+
+  feeAmount Decimal @map("fee_amount") @db.Decimal(12, 2)
+
+  netAmount Decimal @map("net_amount") @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+
+  @@map("simulations")
+}
+
+//
+// TRANSACTIONS
+//
+
+model Transaction {
+  id String @id @default(uuid()) @db.Char(36)
+
+  userId String @map("user_id")
+
+  sourceCardId String @map("source_card_id")
+
+  destinationAccountId String @map("destination_account_id")
+
+  grossAmount Decimal @map("gross_amount") @db.Decimal(12, 2)
+
+  feePercentage Decimal @map("fee_percentage") @db.Decimal(5, 2)
+
+  feeAmount Decimal @map("fee_amount") @db.Decimal(12, 2)
+
+  netAmount Decimal @map("net_amount") @db.Decimal(12, 2)
+
+  status TransactionStatus
+
+  requestedAt DateTime? @map("requested_at")
+
+  processedAt DateTime? @map("processed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  sourceCard Card @relation(fields: [sourceCardId], references: [id])
+
+  destinationAccount BankAccount @relation(fields: [destinationAccountId], references: [id])
+
+  @@index([userId])
+  @@index([sourceCardId])
+  @@index([destinationAccountId])
+
+  @@map("transactions")
+}
+
+//
+// AUDIT LOGS
+//
+
+model AuditLog {
+  id BigInt @id @default(autoincrement())
+
+  userId String? @map("user_id")
+
+  entityType String? @map("entity_type") @db.VarChar(50)
+
+  entityId String? @map("entity_id") @db.Char(36)
+
+  action String @db.VarChar(100)
+
+  ipAddress String? @map("ip_address") @db.VarChar(100)
+
+  userAgent String? @map("user_agent") @db.VarChar(500)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+
+  @@map("audit_logs")
+}
+
+//
+// SYSTEM SETTINGS
+//
+
+model SystemSetting {
+  id Int @id @default(autoincrement())
+
+  key String @unique @map("setting_key") @db.VarChar(100)
+
+  value String @map("setting_value") @db.VarChar(255)
+
+  description String? @db.VarChar(255)
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
 }

@@ -1,51 +1,53 @@
 # Backend - Capital Fest
 
-Este es el proyecto backend para Capital Fest, construido con **Node.js, Express y Prisma**.
+Backend for Capital Fest, build with **Node.js, Express and Prisma**.
 
 ## Requisitos previos
 
-- Tener instalado [Node.js](https://nodejs.org/) (se recomienda la versión LTS).
-- Servidor de base de datos compatible con la configuración de Prisma.
+- [Node.js](https://nodejs.org/) (LTS).
 
-## Pasos para ejecutar el proyecto localmente
+## Getting started
 
-**1. Instalar las dependencias:**
+First, you need copy `.env.example` file content into `.env` file.
 
-Ubicado en la carpeta principal del proyecto, abre la terminal y ejecuta:
+```sh
+cp .env.example .env
+```
 
-```bash
+## Installation
+
+Install dependencies:
+
+```sh
 npm install
 ```
 
-**2. Configurar las variables de entorno:**
+Run server in dev mode:
 
-Crea un archivo llamado `.env` en la raíz del proyecto y agrega las siguientes variables (puedes solicitarlas al equipo o usar tu configuración local):
-
-```env
-PORT=3000
-DATABASE_URL="tu_url_de_conexion_a_la_base_de_datos"
+```sh
+npm run serve
 ```
 
-**3. Configurar la base de datos (Prisma):**
+If you see the following response in the browser:
 
-Para sincronizar la base de datos y generar el cliente de Prisma, ejecuta:
-
-```bash
-npx prisma generate
-npx prisma db push
+```
+{"message":"OK", "statusCode": 200, "data":"2022-02-13T20:05:13.965Z"}
 ```
 
-**4. Levantar el servidor:**
+It means that everything work as expected.
 
-Para iniciar la aplicación, ejecuta el siguiente comando:
+## Code linting
 
-```bash
-node index.js
+Run code quality analysis using
+
+```sh
+npm run lint
 ```
 
-Si todo está correcto, verás un mensaje en la consola indicando: `Servidor corriendo en http://localhost:3000`.
+## Fixing problems
 
-## Endpoints principales
+Automatically fix linter's problems
 
-El backend expone sus rutas principales bajo el prefijo `/api`.
-- **Ruta de prueba:** `GET http://localhost:3000/api`
+```sh
+npm run lint:fix
+```
