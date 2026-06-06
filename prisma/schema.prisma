@@ -297,6 +297,7 @@ model Card {
   lastFourDigits String @map("last_four_digits") @db.Char(4)
 
   cardFrontImageUrl String? @map("card_front_image_url") @db.VarChar(500)
+  cardBackImageUrl  String? @map("card_back_image_url") @db.VarChar(500)
 
   isVerified Boolean @default(false) @map("is_verified")
 

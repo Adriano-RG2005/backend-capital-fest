@@ -57,6 +57,17 @@ async function main(): Promise<void> {
     { name: 'Registro Único de Contribuyentes', code: 'RUC' },
   ];
 
+  const banks = [
+    { name: 'Banco de Crédito del Perú', code: 'BCP' },
+    { name: 'Interbank', code: 'IBK' },
+    { name: 'BBVA Perú', code: 'BBVA' },
+    { name: 'Scotiabank Perú', code: 'SCOTIA' },
+    { name: 'Banco de la Nación', code: 'BN' },
+    { name: 'BanBif', code: 'BANBIF' },
+    { name: 'Mibanco', code: 'MIBANCO' },
+    { name: 'Banco Pichincha', code: 'PICHINCHA' },
+  ];
+
   try {
     console.log('Seeding departments...');
     await prisma.department.createMany({ data: departments, skipDuplicates: true });
@@ -69,6 +80,9 @@ async function main(): Promise<void> {
 
     console.log('Seeding document types...');
     await prisma.documentType.createMany({ data: documentTypes, skipDuplicates: true });
+
+    console.log('Seeding banks...');
+    await prisma.bank.createMany({ data: banks, skipDuplicates: true });
 
     console.log('Seeding completed.');
   } catch (error) {

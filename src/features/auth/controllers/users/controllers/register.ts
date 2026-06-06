@@ -19,6 +19,11 @@ export const register = async (req: Request, res: Response, userRepository: User
     provinceId,
     districtId,
     address,
+    documentFrontUrl,
+    documentBackUrl,
+    selfieWithDocumentUrl,
+    bankAccounts,
+    cards,
   } = req.body;
 
   const existingUserByEmail = await userRepository.findByEmail(email);
@@ -50,6 +55,13 @@ export const register = async (req: Request, res: Response, userRepository: User
     provinceId: toNumberOrUndefined(provinceId),
     districtId: toNumberOrUndefined(districtId),
     address,
+    verification: {
+      documentFrontUrl,
+      documentBackUrl,
+      selfieWithDocumentUrl,
+    },
+    bankAccounts,
+    cards,
   });
 
   const { passwordHash: _, ...userWithoutPassword } = user;
