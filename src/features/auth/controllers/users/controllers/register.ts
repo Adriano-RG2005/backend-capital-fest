@@ -34,6 +34,8 @@ export const register = async (req: Request, res: Response, userRepository: User
   const salt = await bcrypt.genSalt(10);
   const passwordHash = await bcrypt.hash(password, salt);
 
+  const toNumberOrUndefined = (v: unknown) => (v === undefined || v === null || v === '' ? undefined : Number(v));
+
   const user = await userRepository.create({
     firstName,
     lastName,
@@ -44,9 +46,9 @@ export const register = async (req: Request, res: Response, userRepository: User
     documentTypeId: Number(documentTypeId),
     documentNumber,
     roleId: Number(roleId),
-    departmentId: Number(departmentId),
-    provinceId: Number(provinceId),
-    districtId: Number(districtId),
+    departmentId: toNumberOrUndefined(departmentId),
+    provinceId: toNumberOrUndefined(provinceId),
+    districtId: toNumberOrUndefined(districtId),
     address,
   });
 

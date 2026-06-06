@@ -11,41 +11,38 @@ export type CreateUserInput = {
   documentTypeId: number;
   documentNumber: string;
   roleId: number;
-  departmentId: number;
-  provinceId: number;
-  districtId: number;
+  departmentId?: number;
+  provinceId?: number;
+  districtId?: number;
   address: string;
 };
 
 export class UserRepository {
   async create(data: CreateUserInput): Promise<User> {
-    return prisma.user.create({
-      data: {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        passwordHash: data.passwordHash,
-        birthDate: data.birthDate,
-        phone: data.phone,
-        documentNumber: data.documentNumber,
-        department: {
-          connect: { id: data.departmentId },
-        },
-        province: {
-          connect: { id: data.provinceId },
-        },
-        district: {
-          connect: { id: data.districtId },
-        },
-        address: data.address,
-        role: {
-          connect: { id: data.roleId },
-        },
-        documentType: {
-          connect: { id: data.documentTypeId },
-        },
-      },
-    });
+    const createData: any = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      passwordHash: data.passwordHash,
+      birthDate: data.birthDate,
+      phone: data.phone,
+      documentNumber: data.documentNumber,
+      address: data.address,
+      role: { connect: { id: data.roleId } },
+      documentType: { connect: { id: data.documentTypeId } },
+    };
+
+    if (data.departmentId !== undefined && data.departmentId !== null) {
+      createData.department = { connect: { id: data.departmentId } };
+    }
+    if (data.provinceId !== undefined && data.provinceId !== null) {
+      createData.province = { connect: { id: data.provinceId } };
+    }
+    if (data.districtId !== undefined && data.districtId !== null) {
+      createData.district = { connect: { id: data.districtId } };
+    }
+
+    return prisma.user.create({ data: createData });
   }
 
   async findByEmail(email: string): Promise<User | null> {
