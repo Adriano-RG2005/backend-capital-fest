@@ -9,8 +9,6 @@ console.log('DB_USER', DB_USER);
 console.log('DB_PASSWORD', DB_PASSWORD);
 console.log('DB_NAME', DB_NAME);
 
-
-
 const adapter = new PrismaMariaDb({
   host: DB_HOST,
   user: DB_USER,
