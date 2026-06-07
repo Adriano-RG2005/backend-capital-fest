@@ -1,4 +1,5 @@
 import compression from 'compression';
+import cors from 'cors';
 import express, { type Application } from 'express';
 import helmet from 'helmet';
 import NotFoundException from '@/exceptions/NotFoundException';
@@ -13,6 +14,7 @@ import { errorHandler } from '@/middlewares/error-handler.middleware';
 
 const app: Application = express();
 
+app.use(cors());
 app.use(helmet(), compression(), express.json(), express.urlencoded({ extended: true }));
 
 app.use('/api/auth', authRoutes);

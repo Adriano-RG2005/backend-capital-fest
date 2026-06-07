@@ -29,11 +29,12 @@ export const registerUserValidation = (): ValidationChain[] => {
       .withMessage('El campo "birthDate" debe ser una fecha válida'),
     body('phone').exists().withMessage('El campo "phone" es requerido'),
     body('documentTypeId')
-      .exists()
-      .withMessage('El campo "documentTypeId" es requerido')
+      .optional()
       .isInt()
       .withMessage('El campo "documentTypeId" debe ser un número entero'),
-    body('documentNumber').exists().withMessage('El campo "documentNumber" es requerido'),
+    body('documentNumber')
+      .optional()
+      .isString(),
     body('roleId').optional().isInt().withMessage('El campo "roleId" debe ser un número entero'),
     body('documentFrontUrl').optional().isString().withMessage('El campo "documentFrontUrl" debe ser una cadena de texto'),
     body('documentBackUrl').optional().isString().withMessage('El campo "documentBackUrl" debe ser una cadena de texto'),

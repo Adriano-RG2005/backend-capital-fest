@@ -31,9 +31,13 @@ export const register = async (req: Request, res: Response, userRepository: User
     throw new HttpException(StatusCodes.BAD_REQUEST, 'El correo electrónico ya está registrado');
   }
 
-  const existingUserByDoc = await userRepository.findByDocumentNumber(documentNumber);
-  if (existingUserByDoc) {
-    throw new HttpException(StatusCodes.BAD_REQUEST, 'El número de documento ya está registrado');
+  const finalDocumentNumber = documentNumber || `TMP-${Date.now()}`;
+
+  if (documentNumber) {
+    const existingUserByDoc = await userRepository.findByDocumentNumber(documentNumber);
+    if (existingUserByDoc) {
+      throw new HttpException(StatusCodes.BAD_REQUEST, 'El número de documento ya está registrado');
+    }
   }
 
   const salt = await bcrypt.genSalt(10);
@@ -48,13 +52,13 @@ export const register = async (req: Request, res: Response, userRepository: User
     passwordHash,
     birthDate: new Date(birthDate),
     phone,
-    documentTypeId: Number(documentTypeId),
-    documentNumber,
+    documentTypeId: documentTypeId ? Number(documentTypeId) : 1,
+    documentNumber: finalDocumentNumber,
     roleId: Number(roleId),
     departmentId: toNumberOrUndefined(departmentId),
     provinceId: toNumberOrUndefined(provinceId),
     districtId: toNumberOrUndefined(districtId),
-    address,
+    address: address || '',
     verification: {
       documentFrontUrl,
       documentBackUrl,
