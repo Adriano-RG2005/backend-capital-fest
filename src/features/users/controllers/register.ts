@@ -1,3 +1,4 @@
+import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import type { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
@@ -68,10 +69,18 @@ export const register = async (req: Request, res: Response, userRepository: User
     cards,
   });
 
+  const jwtSecret = process.env.JWT_SECRET || 'super-secret-key';
+  const token = jwt.sign(
+    { userId: user.id, email: user.email, roleId: user.roleId },
+    jwtSecret,
+    { expiresIn: '1d' }
+  );
+
   const { passwordHash: _, ...userWithoutPassword } = user;
 
   res.status(StatusCodes.CREATED).send({
     message: 'Usuario registrado exitosamente',
-    data: userWithoutPassword,
+    token,
+    user: userWithoutPassword,
   });
 };
