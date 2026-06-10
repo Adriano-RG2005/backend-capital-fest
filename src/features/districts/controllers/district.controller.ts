@@ -7,6 +7,7 @@ import { findById } from './findById';
 import { update } from './update';
 
 class DistrictController {
+
   private districtRepository = new DistrictRepository();
 
   async create(req: Request, res: Response): Promise<void> {
@@ -31,4 +32,5 @@ class DistrictController {
 }
 
 const districtController = new DistrictController();
+
 export default districtController;

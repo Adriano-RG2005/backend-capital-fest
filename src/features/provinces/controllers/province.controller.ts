@@ -7,7 +7,7 @@ import { findById } from './findById';
 import { update } from './update';
 
 class ProvinceController {
-  private provinceRepository = new ProvinceRepository();
+  constructor(private provinceRepository: ProvinceRepository) {}
 
   async create(req: Request, res: Response): Promise<void> {
     await create(req, res, this.provinceRepository);
@@ -30,5 +30,6 @@ class ProvinceController {
   }
 }
 
-const provinceController = new ProvinceController();
+const provinceController = new ProvinceController(new ProvinceRepository());
+
 export default provinceController;

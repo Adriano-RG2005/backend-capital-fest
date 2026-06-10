@@ -31,4 +31,5 @@ class DocumentTypeController {
 }
 
 const documentTypeController = new DocumentTypeController();
+
 export default documentTypeController;
