@@ -1,4 +1,5 @@
 import { prisma } from '@/database/db';
+import { provincesData, districtsData } from './ubigeoData';
 
 async function main(): Promise<void> {
   // Departments (Peru - 25 regions)
@@ -30,25 +31,29 @@ async function main(): Promise<void> {
     { id: 25, name: 'Ucayali' },
   ];
 
-  // Provinces: small sample per region (ids chosen for uniqueness)
-  const provinces = [
-    { id: 1501, name: 'Lima', departmentId: 15 },
-    { id: 1502, name: 'Cañete', departmentId: 15 },
-    { id: 801, name: 'Cusco', departmentId: 8 },
-    { id: 802, name: 'Urubamba', departmentId: 8 },
-    { id: 2001, name: 'Piura', departmentId: 20 },
-    { id: 2002, name: 'Sullana', departmentId: 20 },
-  ];
+  // Generate Provinces and Districts dynamically from ubigeoData
+  const provinces: { id: number; name: string; departmentId: number }[] = [];
+  const districts: { id: number; name: string; provinceId: number }[] = [];
 
-  // Districts: sample districts for the sample provinces
-  const districts = [
-    { id: 150101, name: 'Lima', provinceId: 1501 },
-    { id: 150201, name: 'San Vicente de Cañete', provinceId: 1502 },
-    { id: 80101, name: 'Cusco', provinceId: 801 },
-    { id: 80201, name: 'Urubamba', provinceId: 802 },
-    { id: 200101, name: 'Piura', provinceId: 2001 },
-    { id: 200201, name: 'Sullana', provinceId: 2002 },
-  ];
+  for (const deptIdStr of Object.keys(provincesData)) {
+    const departmentId = parseInt(deptIdStr, 10);
+    const provs = (provincesData as Record<string, string[]>)[deptIdStr];
+    
+    provs.forEach((provName, pIndex) => {
+      const provIdStr = deptIdStr + String(pIndex + 1).padStart(2, '0');
+      const provinceId = parseInt(provIdStr, 10);
+      provinces.push({ id: provinceId, name: provName, departmentId });
+
+      const dists = (districtsData as Record<string, string[]>)[provName];
+      if (dists) {
+        dists.forEach((distName, dIndex) => {
+          const distIdStr = provIdStr + String(dIndex + 1).padStart(2, '0');
+          const districtId = parseInt(distIdStr, 10);
+          districts.push({ id: districtId, name: distName, provinceId });
+        });
+      }
+    });
+  }
 
   const documentTypes = [
     { name: 'Documento Nacional de Identidad', code: 'DNI' },
