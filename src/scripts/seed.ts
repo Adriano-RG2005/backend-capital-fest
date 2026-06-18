@@ -62,6 +62,11 @@ async function main(): Promise<void> {
     { name: 'Registro Único de Contribuyentes', code: 'RUC' },
   ];
 
+  const roles = [
+    { id: 1, name: 'User', description: 'Regular User' },
+    { id: 2, name: 'Admin', description: 'Administrator' },
+  ];
+
   const banks = [
     { name: 'Banco de Crédito del Perú', code: 'BCP' },
     { name: 'Interbank', code: 'IBK' },
@@ -76,6 +81,9 @@ async function main(): Promise<void> {
   try {
     console.log('Seeding departments...');
     await prisma.department.createMany({ data: departments, skipDuplicates: true });
+
+    console.log('Seeding roles...');
+    await prisma.role.createMany({ data: roles, skipDuplicates: true });
 
     console.log('Seeding provinces...');
     await prisma.province.createMany({ data: provinces, skipDuplicates: true });
