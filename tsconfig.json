@@ -4,6 +4,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "ignoreDeprecations": "6.0",
+    "rootDir": "./src",
     "outDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -18,8 +19,7 @@
     }
   },
   "include": [
-    "src/**/*.ts",
-    "generated/**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }

@@ -1066,14 +1066,7 @@ export const districtsData = {
     "Uticyacu",
     "Yauyucan"
   ],
-  "Callao": [
-    "Bellavista",
-    "Callao",
-    "Carmen de la Legua Reynoso",
-    "La Perla",
-    "La Punta",
-    "Ventanilla"
-  ],
+
   "Cusco": [
     "Ccorca",
     "Cusco",
