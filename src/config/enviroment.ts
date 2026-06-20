@@ -19,9 +19,9 @@ dotenv.config();
 export default {
   ENV: String(getEnvValue('NODE_ENV', 'development')),
   PORT: Number(getEnvValue('PORT', '3000')),
-  DATABASE_URL: String(getEnvValue('DATABASE_URL')),
-  DB_HOST: String(getEnvValue('DB_HOST', 'localhost')),
-  DB_USER: String(getEnvValue('DB_USER', 'user')),
-  DB_PASSWORD: String(getEnvValue('DB_PASSWORD', 'password')),
-  DB_NAME: String(getEnvValue('DB_NAME', 'db_name')),
+  DATABASE_URL: String(process.env.DATABASE_URL || process.env.MYSQL_URL || getEnvValue('DATABASE_URL')),
+  DB_HOST: String(process.env.DB_HOST || process.env.MYSQLHOST || 'localhost'),
+  DB_USER: String(process.env.DB_USER || process.env.MYSQLUSER || 'user'),
+  DB_PASSWORD: String(process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || 'password'),
+  DB_NAME: String(process.env.DB_NAME || process.env.MYSQLDATABASE || 'db_name'),
 };
