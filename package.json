@@ -4,7 +4,7 @@
   "author": "Adriano-RG2005",
   "license": "ISC",
   "scripts": {
-    "build": "tsc && tsc-alias",
+    "build": "npx prisma generate && tsc && tsc-alias",
     "dev": "tsx watch src/server.ts",
     "seed": "tsx src/scripts/seed.ts",
     "start": "node dist/server.js",
