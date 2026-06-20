@@ -7,7 +7,7 @@
     "build": "npx prisma generate && tsc && tsc-alias",
     "dev": "tsx watch src/server.ts",
     "seed": "tsx src/scripts/seed.ts",
-    "start": "node dist/server.js",
+    "start": "npx prisma migrate deploy && node dist/server.js",
     "lint": "biome check src",
     "lint:fix": "biome check --write src",
     "format": "biome format --write src"
