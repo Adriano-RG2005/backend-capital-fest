@@ -98,15 +98,6 @@ async function main(): Promise<void> {
     console.log('Seeding banks...');
     await prisma.bank.createMany({ data: banks, skipDuplicates: true });
 
-    const testUser = await prisma.user.upsert({
-      where: { email: 'demo@capitalfest.test' },
-      update: { accountStatus: 'active', emailVerified: true },
-      create: {
-        roleId: 1, firstName: 'Demo', lastName: 'Capital Fest', birthDate: new Date('1995-01-01'),
-        phone: '999999999', email: 'demo@capitalfest.test', passwordHash: await bcrypt.hash('Demo1234!', 12),
-        documentTypeId: 1, documentNumber: '99999999', accountStatus: 'active', emailVerified: true,
-      },
-    });
     await prisma.user.upsert({
       where: { email: 'admin@capitalfest.test' },
       update: { accountStatus: 'active', emailVerified: true },
@@ -116,13 +107,6 @@ async function main(): Promise<void> {
         documentTypeId: 1, documentNumber: '88888888', accountStatus: 'active', emailVerified: true,
       },
     });
-    const bcp = await prisma.bank.findUniqueOrThrow({ where: { code: 'BCP' } });
-    await prisma.card.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000001' },
-      update: { status: 'active', deletedAt: null },
-      create: { id: '00000000-0000-0000-0000-000000000001', userId: testUser.id, bankId: bcp.id, cardHolderName: 'Demo Capital Fest', cardBrand: 'Visa', lastFourDigits: '7890', expirationMonth: 12, expirationYear: 2028, creditLimit: 8000, usedLimit: 0, isVerified: true },
-    });
-
     console.log('Seeding completed.');
   } catch (error) {
     console.error('Seeding failed:', error);
