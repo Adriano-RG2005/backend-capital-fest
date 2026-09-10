@@ -22,8 +22,8 @@ export default {
   DATABASE_URL: String(process.env.DATABASE_URL || process.env.MYSQL_URL || getEnvValue('DATABASE_URL')),
   DB_HOST: String(process.env.DB_HOST || process.env.MYSQLHOST || 'localhost'),
   DB_USER: String(process.env.DB_USER || process.env.MYSQLUSER || 'user'),
-  DB_PASSWORD: String(process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || 'password'),
+  DB_PASSWORD: String(process.env.DB_PASSWORD ?? process.env.MYSQLPASSWORD ?? 'password'),
   DB_NAME: String(process.env.DB_NAME || process.env.MYSQLDATABASE || 'db_name'),
   JWT_SECRET: String(getEnvValue('JWT_SECRET', 'change-this-secret-in-production')),
-  CORS_ORIGIN: String(getEnvValue('CORS_ORIGIN', 'http://localhost:4321')),
+  CORS_ORIGIN: String(getEnvValue('CORS_ORIGIN', 'http://localhost:4321,https://pagina-web-de-empresa.vercel.app')),
 };

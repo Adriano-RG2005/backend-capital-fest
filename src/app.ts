@@ -20,8 +20,18 @@ import notificationRoutes from "@/features/notifications/routes";
 import adminRoutes from "@/features/admin/routes";
 
 const app: Application = express();
+const allowedOrigins = enviroment.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean);
 
-app.use(cors({ origin: enviroment.CORS_ORIGIN, credentials: true }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error('Origin not allowed by CORS'));
+  },
+  credentials: true,
+}));
 app.use(
   helmet(),
   compression(),
