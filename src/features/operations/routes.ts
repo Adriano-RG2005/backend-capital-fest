@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { asyncMiddleware } from '@/middlewares/async.middleware';
+import { requireAuth } from '@/middlewares/auth.middleware';
+import { listOperations, getOperation, voucher } from './controller';
+const router = Router();
+router.use(requireAuth);
+router.get('/', asyncMiddleware(listOperations));
+router.get('/:id', asyncMiddleware(getOperation));
+router.get('/:id/voucher', asyncMiddleware(voucher));
+export default router;

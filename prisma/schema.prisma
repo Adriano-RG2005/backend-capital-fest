@@ -41,6 +41,28 @@ enum TransactionStatus {
   rejected
 }
 
+enum CardStatus {
+  active
+  locked
+  expired
+  removed
+}
+
+enum SimulationStatus {
+  pending
+  converted
+  cancelled
+}
+
+enum WithdrawalStatus {
+  pending
+  reviewing
+  approved
+  rejected
+  completed
+  cancelled
+}
+
 //
 // CATALOGS
 //
@@ -83,6 +105,7 @@ model Bank {
 
   bankAccounts BankAccount[]
   cards        Card[]
+  simulations  Simulation[]
 
   @@map("banks")
 }
@@ -195,7 +218,11 @@ model User {
   cards        Card[]
   simulations  Simulation[]
   transactions Transaction[]
+  withdrawals Withdrawal[]
+  notifications Notification[]
+  passwordResetTokens PasswordResetToken[]
   auditLogs    AuditLog[]
+  changedStatusHistory StatusHistory[] @relation("StatusHistoryChangedBy")
 
   @@index([email])
   @@index([documentNumber])
@@ -259,6 +286,7 @@ model BankAccount {
   currencyCode String @default("PEN") @map("currency_code") @db.VarChar(10)
 
   isDefault Boolean @default(false) @map("is_default")
+
   isVerified Boolean @default(false) @map("is_verified")
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -295,6 +323,10 @@ model Card {
   cardBrand String? @map("card_brand") @db.VarChar(30)
 
   lastFourDigits String @map("last_four_digits") @db.Char(4)
+  expirationMonth Int @default(1) @map("expiration_month")
+  expirationYear Int @default(2099) @map("expiration_year")
+  creditLimit Decimal @default(0) @map("credit_limit") @db.Decimal(12, 2)
+  usedLimit Decimal @default(0) @map("used_limit") @db.Decimal(12, 2)
 
   cardFrontImageUrl String? @map("card_front_image_url") @db.VarChar(500)
   cardBackImageUrl  String? @map("card_back_image_url") @db.VarChar(500)
@@ -302,6 +334,7 @@ model Card {
   isVerified Boolean @default(false) @map("is_verified")
 
   isDefault Boolean @default(false) @map("is_default")
+  status CardStatus @default(active)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -314,6 +347,7 @@ model Card {
   bankAccount BankAccount? @relation(fields: [bankAccountId], references: [id])
 
   sourceTransactions Transaction[]
+  simulations Simulation[]
 
   @@index([userId])
 
@@ -327,7 +361,11 @@ model Card {
 model Simulation {
   id String @id @default(uuid()) @db.Char(36)
 
-  userId String? @map("user_id")
+  operationCode String @unique @map("operation_code") @db.VarChar(20)
+
+  userId String @map("user_id")
+  cardId String @map("card_id")
+  bankId Int @map("bank_id")
 
   grossAmount Decimal @map("gross_amount") @db.Decimal(12, 2)
 
@@ -337,13 +375,80 @@ model Simulation {
 
   netAmount Decimal @map("net_amount") @db.Decimal(12, 2)
 
+  currency String @default("PEN") @db.VarChar(3)
+  status SimulationStatus @default(pending)
+
   createdAt DateTime @default(now()) @map("created_at")
 
-  user User? @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  card Card @relation(fields: [cardId], references: [id])
+  bank Bank @relation(fields: [bankId], references: [id])
+  withdrawal Withdrawal?
 
   @@index([userId])
+  @@index([cardId])
 
   @@map("simulations")
+}
+
+model Withdrawal {
+  id String @id @default(uuid()) @db.Char(36)
+  simulationId String @unique @map("simulation_id")
+  userId String @map("user_id")
+  status WithdrawalStatus @default(pending)
+  reason String? @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  simulation Simulation @relation(fields: [simulationId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+  statusHistory StatusHistory[]
+
+  @@index([userId])
+  @@map("withdrawals")
+}
+
+model StatusHistory {
+  id String @id @default(uuid()) @db.Char(36)
+  withdrawalId String @map("withdrawal_id")
+  status WithdrawalStatus
+  reason String? @db.VarChar(255)
+  changedBy String? @map("changed_by") @db.Char(36)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  withdrawal Withdrawal @relation(fields: [withdrawalId], references: [id])
+  changedByUser User? @relation("StatusHistoryChangedBy", fields: [changedBy], references: [id])
+
+  @@index([withdrawalId])
+  @@map("status_history")
+}
+
+model Notification {
+  id String @id @default(uuid()) @db.Char(36)
+  userId String @map("user_id")
+  title String @db.VarChar(120)
+  message String @db.VarChar(500)
+  readAt DateTime? @map("read_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model PasswordResetToken {
+  id String @id @default(uuid()) @db.Char(36)
+  userId String @map("user_id")
+  tokenHash String @unique @map("token_hash") @db.VarChar(128)
+  expiresAt DateTime @map("expires_at")
+  usedAt DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 //

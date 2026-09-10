@@ -1,5 +1,6 @@
 import { prisma } from '@/database/db';
 import { provincesData, districtsData } from './ubigeoData';
+import bcrypt from 'bcrypt';
 
 async function main(): Promise<void> {
   // Departments (Peru - 25 regions)
@@ -38,7 +39,7 @@ async function main(): Promise<void> {
   for (const deptIdStr of Object.keys(provincesData)) {
     const departmentId = parseInt(deptIdStr, 10);
     const provs = (provincesData as Record<string, string[]>)[deptIdStr];
-    
+
     provs.forEach((provName, pIndex) => {
       const provIdStr = deptIdStr + String(pIndex + 1).padStart(2, '0');
       const provinceId = parseInt(provIdStr, 10);
@@ -96,6 +97,31 @@ async function main(): Promise<void> {
 
     console.log('Seeding banks...');
     await prisma.bank.createMany({ data: banks, skipDuplicates: true });
+
+    const testUser = await prisma.user.upsert({
+      where: { email: 'demo@capitalfest.test' },
+      update: { accountStatus: 'active', emailVerified: true },
+      create: {
+        roleId: 1, firstName: 'Demo', lastName: 'Capital Fest', birthDate: new Date('1995-01-01'),
+        phone: '999999999', email: 'demo@capitalfest.test', passwordHash: await bcrypt.hash('Demo1234!', 12),
+        documentTypeId: 1, documentNumber: '99999999', accountStatus: 'active', emailVerified: true,
+      },
+    });
+    await prisma.user.upsert({
+      where: { email: 'admin@capitalfest.test' },
+      update: { accountStatus: 'active', emailVerified: true },
+      create: {
+        roleId: 2, firstName: 'Admin', lastName: 'Capital Fest', birthDate: new Date('1990-01-01'),
+        phone: '988888888', email: 'admin@capitalfest.test', passwordHash: await bcrypt.hash('Admin1234!', 12),
+        documentTypeId: 1, documentNumber: '88888888', accountStatus: 'active', emailVerified: true,
+      },
+    });
+    const bcp = await prisma.bank.findUniqueOrThrow({ where: { code: 'BCP' } });
+    await prisma.card.upsert({
+      where: { id: '00000000-0000-0000-0000-000000000001' },
+      update: { status: 'active', deletedAt: null },
+      create: { id: '00000000-0000-0000-0000-000000000001', userId: testUser.id, bankId: bcp.id, cardHolderName: 'Demo Capital Fest', cardBrand: 'Visa', lastFourDigits: '7890', expirationMonth: 12, expirationYear: 2028, creditLimit: 8000, usedLimit: 0, isVerified: true },
+    });
 
     console.log('Seeding completed.');
   } catch (error) {

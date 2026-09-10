@@ -18,6 +18,10 @@ export const login = async (req: Request, res: Response, userRepository: UserRep
     throw new HttpException(StatusCodes.UNAUTHORIZED, 'Credenciales incorrectas');
   }
 
+  if (user.accountStatus === 'blocked' || user.accountStatus === 'pending_verification') {
+    throw new HttpException(StatusCodes.FORBIDDEN, 'La cuenta no está habilitada');
+  }
+
   const jwtSecret = process.env.JWT_SECRET || 'super-secret-key';
   const token = jwt.sign(
     { userId: user.id, email: user.email, roleId: user.roleId },
@@ -25,11 +29,8 @@ export const login = async (req: Request, res: Response, userRepository: UserRep
     { expiresIn: '1d' }
   );
 
-  const { passwordHash: _, ...userWithoutPassword } = user;
-
   res.status(StatusCodes.OK).send({
-    message: 'Login exitoso',
     token,
-    user: userWithoutPassword,
+    user: { id: user.id, firstName: user.firstName, lastName: user.lastName, email: user.email, roleId: user.roleId, status: 'verified' },
   });
 };
