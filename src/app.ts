@@ -39,6 +39,17 @@ app.use(
   express.urlencoded({ extended: true }),
 );
 
+app.get('/', (_, res) => {
+  res.status(200).json({
+    message: 'Capital Fest API',
+    healthcheck: '/api/healthcheck',
+  });
+});
+
+app.get('/favicon.ico', (_, res) => {
+  res.sendStatus(204);
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/healthcheck", healthcheckRoutes);
 app.use("/api/document-types", documentTypeRoutes);
