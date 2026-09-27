@@ -223,6 +223,8 @@ model User {
   passwordResetTokens PasswordResetToken[]
   auditLogs    AuditLog[]
   changedStatusHistory StatusHistory[] @relation("StatusHistoryChangedBy")
+  adminActivities AdminActivity[] @relation("AdminActivities")
+  targetActivities AdminActivity[] @relation("TargetUserActivities")
 
   @@index([email])
   @@index([documentNumber])
@@ -327,6 +329,7 @@ model Card {
   expirationYear Int @default(2099) @map("expiration_year")
   creditLimit Decimal @default(0) @map("credit_limit") @db.Decimal(12, 2)
   usedLimit Decimal @default(0) @map("used_limit") @db.Decimal(12, 2)
+  availableLimit Decimal @default(0) @map("available_limit") @db.Decimal(12, 2)
 
   cardFrontImageUrl String? @map("card_front_image_url") @db.VarChar(500)
   cardBackImageUrl  String? @map("card_back_image_url") @db.VarChar(500)
@@ -348,6 +351,7 @@ model Card {
 
   sourceTransactions Transaction[]
   simulations Simulation[]
+  adminActivities AdminActivity[]
 
   @@index([userId])
 
@@ -520,6 +524,27 @@ model AuditLog {
   @@index([userId])
 
   @@map("audit_logs")
+}
+
+model AdminActivity {
+  id String @id @default(uuid()) @db.Char(36)
+
+  adminUserId String @map("admin_user_id") @db.Char(36)
+  action String @db.VarChar(100)
+  targetUserId String? @map("target_user_id") @db.Char(36)
+  targetCardId String? @map("target_card_id") @db.Char(36)
+  description String @db.VarChar(500)
+  metadata Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  adminUser User @relation("AdminActivities", fields: [adminUserId], references: [id])
+  targetUser User? @relation("TargetUserActivities", fields: [targetUserId], references: [id])
+  targetCard Card? @relation(fields: [targetCardId], references: [id])
+
+  @@index([adminUserId])
+  @@index([targetUserId])
+  @@index([targetCardId])
+  @@map("admin_activities")
 }
 
 //
